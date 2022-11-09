@@ -1,4 +1,5 @@
-# Latte Art Detector - 
+# Train and use a Latte Art Detector on Google Cloud
+## With Vertex AI and Cloud Run
 
 Python Flask App that uses Vertex AI AutoML Vision to detect if your latte art is pro or not. 
 

@@ -1,3 +1,6 @@
+
+# Replace endpoint and project ID below
+
 from flask import Flask, flash, request, redirect, url_for, render_template
 import urllib.request
 import os
@@ -20,20 +23,30 @@ ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def cleanup():
+    path = 'static/uploads'
+    for file_name in os.listdir(path):
+        f = path + file_name
+        if os.path.isfile(f):
+            print('Deleting file:', f)
+            os.remove(f)
+
 def resize(im):
-    image = Image.open(im)  
+    fn = "static/uploads/" + im
+    print("fn")
+    image = Image.open(fn)  
     h, w = image.size
-    flash(w)
-    flash(h)
+    #flash(w)
+    #flash(h)
     if (h > 800) or (w > 800):
         aspect_ratio = h/w
         new_w = 800
         new_h = (new_w * aspect_ratio)
         new_h = int(new_h)
-        #flash("Resizing")
+        flash("Resizing")
         newsize = (new_w, new_h)
         resize = image.resize(newsize, Image.LANCZOS)
-        resize.save(im)
+        resize.save(fn)
 
 def predict_image_classification_sample(
     project: str,
@@ -73,12 +86,12 @@ def predict_image_classification_sample(
     for prediction in predictions:
         pred = dict(prediction)
         result = pred["displayNames"]
-        #flash("You are a :" , result[0])   
 
     return result[0]
  
 @app.route('/')
 def home():
+    cleanup()
     return render_template('index.html')
  
 @app.route('/', methods=['POST'])
@@ -92,15 +105,16 @@ def upload_image():
         return redirect(request.url)
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
+ 
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         print('upload_image filename: ' + filename)
         fn = "static/uploads/" + filename
         
-        resize(fn)
-
+        resize(filename)
+        # Replace endpoint and project ID
         skill = predict_image_classification_sample(
-        project="780********",
-        endpoint_id="871602********",
+        project="7803*******",
+        endpoint_id="871602*******",
         location="europe-west4",
         filename=fn,
         api_endpoint="europe-west4-aiplatform.googleapis.com")
@@ -109,7 +123,7 @@ def upload_image():
         flash(message)
         return render_template('index.html', skill=skill)
     else:
-        flash('Allowed image types are - png, jpg, jpeg, gif')
+        #flash('Allowed image types are - png, jpg, jpeg, gif')
         return redirect(request.url)
  
 @app.route('/display/<filename>')

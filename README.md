@@ -13,4 +13,4 @@ Python Flask App that uses Vertex AI AutoML Vision to detect if your latte art i
 6. Make a cappucino 
 7. Take a picture and see if you are a pro
 
-![Alt text](ss1.jpeg?raw=true "Latte Art Detector")
+![Alt text](ss1.png?raw=true "Latte Art Detector")

@@ -30,7 +30,9 @@ def cleanup():
         if os.path.isfile(f):
             print('Deleting file:', f)
             os.remove(f)
-
+         
+         
+# resize as vertex ai does not like files over 1.5MB
 def resize(im):
     fn = "static/uploads/" + im
     print("fn")

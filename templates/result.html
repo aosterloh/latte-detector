@@ -1,0 +1,43 @@
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />        
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+<div class="row">
+    <p>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+                {% if 'Pro' in message %}   
+                <div class="image">
+                    <img src="static/pro.jpeg" alt="Pro">
+                </div> 
+                {% endif %}   
+                {% if 'Beginner' in message %}
+                <div class="image">
+                    <img src="static/beginner.jpeg" alt="Beginner">
+                </div>
+                {% endif %}    
+                {% if 'NotCoffee' in message %}
+                <div class="image">
+                    <img src="static/notcoffee.jpeg" alt="NotCoffee">
+                </div>
+                {% endif %}  
+            {% endfor %}  
+          {% endif %}
+        {% endwith %}
+    </p>
+    {% if filename %}
+        <div>
+            <img src="{{ url_for('display_image', filename=filename) }}">
+        </div>
+    {% endif %}
+</div>
+</div>
+</body>
+</html>

@@ -158,8 +158,8 @@ def upload_image():
         else:
             print("Prediction Call....")
             skill = predict_image_classification_sample(
-            project="780384282968",
-            endpoint_id="8716022187426840576",
+            project="78********",
+            endpoint_id="871************",
             location="europe-west4",
             filename=fn,
             api_endpoint="europe-west4-aiplatform.googleapis.com")

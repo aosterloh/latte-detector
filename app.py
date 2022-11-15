@@ -1,9 +1,9 @@
-
-# Replace endpoint and project ID below
-
 from flask import Flask, flash, request, redirect, url_for, render_template
 import urllib.request
+from google.cloud import storage
 import os
+from google.cloud import vision
+import io
 import base64
 from google.cloud import aiplatform
 from google.cloud.aiplatform.gapic.schema import predict
@@ -19,36 +19,69 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
  
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+img  = Image.new( mode = "RGB", size = (300, 300) )
  
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
+def isCoffee(fullpath):
+    print("Is image even coffee?")
+    client = vision.ImageAnnotatorClient()
+    file_name = os.path.abspath(fullpath)
+    coffee = ["tableware", "Espressino", "Flat white", "Drinkware", "Cortado", "Coffee", "Dishware" ]
+    isCoffee = False
+
+    # Loads the image into memory
+    with io.open(file_name, 'rb') as image_file:
+        content = image_file.read()
+
+    image = vision.Image(content=content)
+
+    # Performs label detection on the image file
+    response = client.label_detection(image=image)
+    labels = response.label_annotations
+
+    for label in labels:
+        #print(label.description)
+        if label.description in coffee:
+            print("Is Coffee: ", label.description)
+            isCoffee = True
+            break
+    print("Is it coffee? ", str(isCoffee))
+    return isCoffee
+
 def cleanup():
-    path = 'static/uploads'
+    print("deleting old uploads") # get rid of local image storage next
+    path = 'static/uploads/'
     for file_name in os.listdir(path):
         f = path + file_name
+        print("Deleting ", f)
         if os.path.isfile(f):
             print('Deleting file:', f)
             os.remove(f)
-         
-         
-# resize as vertex ai does not like files over 1.5MB
-def resize(im):
-    fn = "static/uploads/" + im
-    print("fn")
+    print("Delete done")
+
+
+def upload_blob(path,file):
+    """Uploads a file to the bucket."""
+    print("Uploading to GCS....")
+    # The ID of your GCS bucket
+    bucket_name = "latte-learning"
+    # The ID of your GCS object
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(file)
+    blob.upload_from_filename(path)
+    print("Done upload")
+
+
+def resize(file):
+    fn = "static/uploads/" + file
+    print("resizing image")
     image = Image.open(fn)  
-    h, w = image.size
-    #flash(w)
-    #flash(h)
-    if (h > 800) or (w > 800):
-        aspect_ratio = h/w
-        new_w = 800
-        new_h = (new_w * aspect_ratio)
-        new_h = int(new_h)
-        flash("Resizing")
-        newsize = (new_w, new_h)
-        resize = image.resize(newsize, Image.LANCZOS)
-        resize.save(fn)
+    image.thumbnail((1200,1200))
+    image.save(fn)
 
 def predict_image_classification_sample(
     project: str,
@@ -57,6 +90,7 @@ def predict_image_classification_sample(
     location: str,
     api_endpoint: str,    
 ):
+    print("Prediction call")
     # The AI Platform services require regional API endpoints.
     client_options = {"api_endpoint": api_endpoint}
     # Initialize client that will be used to create and send requests.
@@ -88,16 +122,20 @@ def predict_image_classification_sample(
     for prediction in predictions:
         pred = dict(prediction)
         result = pred["displayNames"]
-
-    return result[0]
+    prediction=result[0]
+    print("Result of prediction call: ", prediction )
+    return prediction
  
 @app.route('/')
 def home():
     cleanup()
+    print("Render index.html")
+    flash ("init")
     return render_template('index.html')
  
-@app.route('/', methods=['POST'])
+@app.route('/result', methods=['POST'])
 def upload_image():
+    print("??????aost Post")
     if 'file' not in request.files:
         flash('No file part')
         return redirect(request.url)
@@ -113,17 +151,25 @@ def upload_image():
         fn = "static/uploads/" + filename
         
         resize(filename)
-        # Replace endpoint and project ID
-        skill = predict_image_classification_sample(
-        project="7803*******",
-        endpoint_id="871602*******",
-        location="europe-west4",
-        filename=fn,
-        api_endpoint="europe-west4-aiplatform.googleapis.com")
-
-        message = 'Your barista Skill level is: ' + skill
+        
+        if isCoffee(fn) == False:
+            message = "NotCoffee"
+            print("Not Coffee")
+        else:
+            print("Prediction Call....")
+            skill = predict_image_classification_sample(
+            project="780384282968",
+            endpoint_id="8716022187426840576",
+            location="europe-west4",
+            filename=fn,
+            api_endpoint="europe-west4-aiplatform.googleapis.com")
+            
+            upload_blob(fn,filename)
+            message = 'Your barista Skill level is: ' + skill
+            print("Your barista Skill level is: ", skill)
+    
         flash(message)
-        return render_template('index.html', skill=skill)
+        return render_template('result.html')
     else:
         #flash('Allowed image types are - png, jpg, jpeg, gif')
         return redirect(request.url)

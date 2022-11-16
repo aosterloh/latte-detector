@@ -2,7 +2,8 @@
 ## With Vertex AI and Cloud Run
 
 Python Flask App that uses Vertex AI AutoML Vision to detect if your latte art is pro or not. 
-More info at https://www.linkedin.com/posts/aosterloh_coffee-cloud-art-activity-6996500747253129217-xKmd/ 
+More info at https://medium.com/@aosterloh34/making-better-coffee-using-artificial-intelligence-f253aa45c0aa
+
 
 ## Steps
 1. Get images of latte art
@@ -14,4 +15,4 @@ More info at https://www.linkedin.com/posts/aosterloh_coffee-cloud-art-activity-
 6. Make a cappucino 
 7. Take a picture and see if you are a pro
 
-![Alt text](ss1.png?raw=true "Latte Art Detector")
+![Alt text](coffee.gif?raw=true "Latte Art Detector")
